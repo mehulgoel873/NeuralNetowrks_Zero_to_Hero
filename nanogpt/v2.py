@@ -16,7 +16,7 @@ import time
 batch_size = 64
 block_size = 256
 max_iters = 5000
-eval_interval = 500
+eval_interval = 1000
 learning_rate = 3e-4
 device =  'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200
@@ -187,8 +187,12 @@ m = model.to(device)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr = learning_rate)
 
+lastTime = time.time()
 for iter in range(max_iters):
-  if iter % eval_interval == 0:
+  if iter % 100 == 0:
+     print("Iteration: ", iter, "Time Taken: ", time.time() - lastTime)
+     lastTime = time.time()
+  if iter != 0 and iter % eval_interval == 0:
     losses = estimate_loss()
     print(f"step {iter}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
 
