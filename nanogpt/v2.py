@@ -10,6 +10,7 @@ Original file is located at
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import time
 
 #hyperparameters
 batch_size = 32
@@ -17,13 +18,13 @@ block_size = 8
 max_iters = 5000
 eval_interval = 500
 learning_rate = 1e-3
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device =  'cpu'
 eval_iters = 200
 n_embd = 32
 #-------------
 
 print(device)
-
+startTime = time.time()
 torch.manual_seed(1337)
 
 with open('input.txt', 'r', encoding='utf-8') as f:
@@ -87,14 +88,20 @@ class Head(nn.Module):
       out = wei @ v 
       return out
 
-
+class MultiHeadAttention(nn.Module):
+  def __init__(self, num_heads, head_size):
+    super().__init__()
+    self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
+  
+  def forward(self, x):
+    return torch.cat([h(x) for h in self.heads], dim=-1)
 
 class BigramLanguageModel(nn.Module):
   def __init__(self):
     super().__init__()
     self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
     self.position_embedding_table = nn.Embedding(block_size, n_embd)
-    self.sa_head = Head(n_embd)
+    self.sa_heads = MultiHeadAttention(4, n_embd//4)
     self.lm_head = nn.Linear(n_embd, vocab_size)
 
   def forward(self, idx, targets=None):
@@ -103,7 +110,7 @@ class BigramLanguageModel(nn.Module):
     tok_embd = self.token_embedding_table(idx)
     pos_embd = self.position_embedding_table(torch.arange(T, device=device))
     x = tok_embd + pos_embd
-    x = self.sa_head(x)
+    x = self.sa_heads(x)
     logits = self.lm_head(x)
 
 
@@ -149,3 +156,4 @@ for iter in range(max_iters):
 
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
 print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
+print("\n\n Total Execution Time: ", (time.time() - startTime))

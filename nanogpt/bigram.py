@@ -11,6 +11,10 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
+import time
+
+startTime = time.time()
+
 #hyperparameters
 batch_size = 32
 block_size = 8
@@ -20,6 +24,8 @@ learning_rate = 1e-2
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200
 #-------------
+
+print(device)
 
 torch.manual_seed(1337)
 
@@ -113,3 +119,6 @@ for iter in range(max_iters):
 
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
 print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
+
+
+print("\n\n Total Execution Time: ", (time.time() - startTime))
