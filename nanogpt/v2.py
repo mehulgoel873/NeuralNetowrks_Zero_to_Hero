@@ -16,7 +16,7 @@ import time
 batch_size = 64
 block_size = 256
 max_iters = 5000
-eval_interval = 1000
+eval_interval = 2000
 learning_rate = 3e-4
 device =  'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200
@@ -33,7 +33,7 @@ print(device)
 startTime = time.time()
 torch.manual_seed(1337)
 
-with open('input.txt', 'r', encoding='utf-8') as f:
+with open('dialog.txt', 'r', encoding='utf-8', errors='ignore') as f:
     text = f.read()
 
 #here are all the unique characters that occur in this text
@@ -189,7 +189,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr = learning_rate)
 
 lastTime = time.time()
 for iter in range(max_iters):
-  if iter % 100 == 0:
+  if iter % 25 == 0:
      print("Iteration: ", iter, "Time Taken: ", time.time() - lastTime)
      lastTime = time.time()
   if iter != 0 and iter % eval_interval == 0:
@@ -205,4 +205,5 @@ for iter in range(max_iters):
 
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
 print(decode(m.generate(context, max_new_tokens=2000)[0].tolist()))
+torch.save(m.state_dict(), "dialog_gpt.pt")
 print("\n\n Total Execution Time: ", (time.time() - startTime))
